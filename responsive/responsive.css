@@ -1,0 +1,51 @@
+.software {
+    width: 128px;
+    height: 240px;
+}
+
+/*
+ * Display a different sprite based on screen width
+ * Note that rules further down the page take precedence:
+ * eg. the first rule applies to screen widths strictly greater than 1200px
+ * (exclusive lower bound, inclusive upper bound)
+ */
+
+@media screen and (min-width: 1200px){
+    .software{ background:url(software.png) 0 0; }
+}
+
+@media screen and (min-width: 1100px) and (max-width: 1200px){
+    .software{ background:url(software.png) -130px 0; }
+}
+
+@media screen and (min-width: 1000px) and (max-width: 1100px){
+    .software{ background:url(software.png) -256px 0; }
+}
+
+@media screen and (min-width: 900px) and (max-width: 1000px){
+    .software{ background:url(software.png) -384px 0; }
+}
+
+@media screen and (min-width: 800px) and (max-width: 900px){
+    .software{ background:url(software.png) -512px 0; }
+}
+
+@media screen and (min-width: 700px) and (max-width: 800px){
+    .software{ background:url(software.png) 0 -240px; }
+}
+
+@media screen and (min-width: 600px) and (max-width: 700px){
+    .software{ background:url(software.png) -130px -240px; }
+}
+
+@media screen and (min-width: 500px) and (max-width: 600px){
+    .software{ background:url(software.png) -256px -240px; }
+}
+
+@media screen and (min-width: 400px) and (max-width: 500px){
+    .software{ background:url(software.png) -384px -240px; }
+}
+
+@media screen and (max-width: 400px){
+    .software{ background:url(software.png) -512px -240px; }
+}
