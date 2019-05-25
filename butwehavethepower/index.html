@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Union Strike Folk Song</title>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+<h1 id="title">Union Strike Folk Song</h1>
+
+<video src="https://www.cs.tufts.edu/comp/20/butwehavethepower.mp4" id="butwehavethepower" controls></video>
+<div id="lyrics"></div>
+
+<script>
+    function getLyrics(time) {
+        var lyrics = "";
+        if (time < 5.5) { lyrics = ""; }
+        else if (time < 8.5) {lyrics = "Come gather round, children";}
+        else if (time < 10.5) {lyrics = "It's high time ye learned";}
+        else if (time < 13) {lyrics = "'Bout a hero named Homer";}
+        else if (time < 17) {lyrics = "And a devil named Burns.";}
+        else if (time < 18.5) {lyrics = "We'll march 'till we drop ";}
+        else if (time < 21.5) {lyrics = "The girls and the fellas.";}
+        else if (time < 23) {lyrics = "We'll fight 'till the death";}
+        else if (time < 27) {lyrics = "Or else fold like umbrellas.";}
+        else if (time < 38) {lyrics = "";}
+        else if (time < 40) {lyrics = "So we'll march day and night";}
+        else if (time < 43) {lyrics = "By the big cooling tower.";}
+        else if (time < 45) {lyrics = "They have the plant";}
+        else if (time < 49.5) {lyrics = "But we have the power.";}
+        else if (time < 52) {lyrics = "";}
+        else if (time < 54.5) {lyrics = "Lenny: Now do \"Classical Gas!\"";}
+        else if (time < 73) {lyrics = "[Music]";}
+        else if (time < 75) {lyrics = "So we'll march day and night";}
+        else if (time < 77.5) {lyrics = "By the big cooling tower.";}
+        else if (time < 79.5) {lyrics = "They have the plant";}
+        else if (time < 82) {lyrics = "But we have the power.";}
+        else if (time < 84) {lyrics = "So we'll march day and night";}
+        else if (time < 86) {lyrics = "By the big cooling tower.";}
+        else if (time < 88.5) {lyrics = "They have the plant";}
+        else if (time < 91) {lyrics = "But we have the power.";}
+        else {lyris = "";}
+        return lyrics;
+    }
+
+    var video = document.getElementById("butwehavethepower");
+    video.addEventListener("timeupdate", function() {
+        var lyrics = getLyrics(video.currentTime);
+        var lyricsDiv = document.getElementById("lyrics");
+        lyricsDiv.innerHTML = lyrics;
+    });
+</script>
+</body>
+</html>
+
