@@ -1,11 +1,11 @@
 var map;
 var vehicleData = [
-    {id: "mXfkjrFw", loc: {lat: 42.3453, lng: -71.0464}},
-    {id: "nZXB8ZHz", loc: {lat: 42.3662, lng: -71.0621}},
-    {id: "Tkwu74WC", loc: {lat: 42.3603, lng: -71.0547}},
-    {id: "5KWpnAJN", loc: {lat: 42.3472, lng: -71.0802}},
-    {id: "uf5ZrXYw", loc: {lat: 42.3663, lng: -71.0544}},
-    {id: "VMerzMH8", loc: {lat: 42.3542, lng: -71.0704}},
+    {id: "mXfkjrFw", location: {lat: 42.3453, lng: -71.0464}},
+    {id: "nZXB8ZHz", location: {lat: 42.3662, lng: -71.0621}},
+    {id: "Tkwu74WC", location: {lat: 42.3603, lng: -71.0547}},
+    {id: "5KWpnAJN", location: {lat: 42.3472, lng: -71.0802}},
+    {id: "uf5ZrXYw", location: {lat: 42.3663, lng: -71.0544}},
+    {id: "VMerzMH8", location: {lat: 42.3542, lng: -71.0704}},
 ];
 
 function initMap(){
@@ -15,7 +15,14 @@ function initMap(){
     });
 
     vehicleData.forEach(function(car) {
-        var marker = new google.maps.Marker(
-            {position: car.loc, map: map, icon: "car.png"});
+        let marker = new google.maps.Marker(
+            {position: car.location, map: map, icon: "car.png"});
+    });
+
+    navigator.geolocation.getCurrentPosition(function(position) {
+        let my_marker = new google.maps.Marker({
+            position: {lat: position.coords.latitude, lng: position.coords.longitude},
+            map: map
+        })
     });
 }
