@@ -26,21 +26,23 @@ function initMap(){
             position: {lat, lng},
             map: map
         })
+        markCars(lat,lng)
     });
 }
 
-function getCars(lat, lng) {
+function markCars(lat, lng) {
     let xhr = new XMLHttpRequest();
-    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhr.open("POST", "https://hans-moleman.herokuapp.com/rides");
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhr.send("username=ciuyoepn&lat=" + lat + "&lng=" + lng);
     xhr.onreadystatechange = function() {
-        if (xhr.readyState == && xhr.status == 200) {
-            addCarsFromList(JSON.parse(xhr.responseText));
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            cars = JSON.parse(xhr.responseText);
+
+            cars.forEach(function(car) {
+                let position = {lat: car.lat, lng: car.lng}
+                let marker = new google.maps.Marker({position, map, icon: "car.png"});
+            });
         }
     }
-}
-
-function addCarsFromList(carsList) {
-    //do stuff
 }
