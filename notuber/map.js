@@ -20,9 +20,27 @@ function initMap(){
     });
 
     navigator.geolocation.getCurrentPosition(function(position) {
+        let lat = position.coords.latitude;
+        let lng = position.coords.longitude;
         let my_marker = new google.maps.Marker({
-            position: {lat: position.coords.latitude, lng: position.coords.longitude},
+            position: {lat, lng},
             map: map
         })
     });
+}
+
+function getCars(lat, lng) {
+    let xhr = new XMLHttpRequest();
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.open("POST", "https://hans-moleman.herokuapp.com/rides");
+    xhr.send("username=ciuyoepn&lat=" + lat + "&lng=" + lng);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == && xhr.status == 200) {
+            addCarsFromList(JSON.parse(xhr.responseText));
+        }
+    }
+}
+
+function addCarsFromList(carsList) {
+    //do stuff
 }
