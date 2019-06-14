@@ -38,7 +38,7 @@ function initMap(){
                 cars = JSON.parse(xhr.responseText);
                 cars.push(...staticCars); // We also process the static cars
 
-                let minDistMeters = null;
+                let minDist = null;
                 let closestPos = null;
                 let closestUsername = null;
 
@@ -46,13 +46,18 @@ function initMap(){
                 cars.forEach(function(car) {
                     let position = new google.maps.LatLng(car.lat, car.lng);
                     let marker = new google.maps.Marker({position, map, icon: "car.png"});
-                    
-                    let distMeters = google.maps.geometry.spherical.computeDistanceBetween(my_loc, position);
-                    if (!minDistMeters || distMeters < minDistMeters) {
-                        minDistMeters = distMeters;
+
+                    let dist = MILES_PER_METER * google.maps.geometry.spherical.computeDistanceBetween(my_loc, position);
+                    if (!minDist || dist < minDist) {
+                        minDist = dist;
                         closestPos = position;
                         closestUsername = car.username;
                     }
+
+                    marker.addListener('click', function(){
+                        infowindow.setContent("<p>Distance: " + dist + " miles </p>");                    infowindow.open(map, my_marker);
+                        infowindow.open(map, marker);
+                    });
                 });
 
                 // Draw polyline
@@ -65,14 +70,11 @@ function initMap(){
                 // Set user's infowindow
                 my_marker.addListener('click', function(){
                     let content = "<p>Closest Car: " + closestUsername + "</p>\
-                                   <p>Distance: " + (minDistMeters * MILES_PER_METER) + " miles";
+                                   <p>Distance: " + minDist + " miles";
                     infowindow.setContent(content)
                     infowindow.open(map, my_marker);
                 });
             }
         }
     });
-}
-
-function markCars(my_loc) {
 }
