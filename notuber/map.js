@@ -38,43 +38,56 @@ function initMap(){
                 cars = JSON.parse(xhr.responseText);
                 cars.push(...staticCars); // We also process the static cars
 
-                let minDist = null;
-                let closestPos = null;
-                let closestUsername = null;
-
                 // Add a marker to each car and compute minimum distance
-                cars.forEach(function(car) {
-                    let position = new google.maps.LatLng(car.lat, car.lng);
-                    let marker = new google.maps.Marker({position, map, icon: "car.png"});
-
-                    let dist = MILES_PER_METER * google.maps.geometry.spherical.computeDistanceBetween(my_loc, position);
-                    if (!minDist || dist < minDist) {
-                        minDist = dist;
-                        closestPos = position;
-                        closestUsername = car.username;
-                    }
-
-                    marker.addListener('click', function(){
-                        infowindow.setContent("<p>Distance: " + dist + " miles </p>");                    infowindow.open(map, my_marker);
-                        infowindow.open(map, marker);
-                    });
-                });
+                closestCar = processCars(cars, my_loc)
 
                 // Draw polyline
                 let path = new google.maps.Polyline({
-                    path: [my_loc, closestPos],
+                    path: [my_loc, closestCar.pos],
                     strokeColor: '#FF0000',
                     map: map
                 });
 
                 // Set user's infowindow
                 my_marker.addListener('click', function(){
-                    let content = "<p>Closest Car: " + closestUsername + "</p>\
-                                   <p>Distance: " + minDist + " miles";
+                    let content = "<p>Closest Car: " + closestCar.username + "</p>\
+                                   <p>Distance: " + closestCar.dist + " miles";
                     infowindow.setContent(content)
                     infowindow.open(map, my_marker);
                 });
             }
         }
     });
+}
+
+// Find the closest car in the list 'cars' to the location 'my_loc'
+// Adds infowindows to each car that display their distance from 'my_loc'
+// Returns a dictionary with the fields:
+//  dist:     the distance between the closest car and 'my_loc' in miles
+//  pos:      a LatLng object describing the position of the closest car
+//  username: the username of the closest car
+function processCars(cars, my_loc)
+{
+    let minDist = null;
+    let closestPos = null;
+    let closestUsername = null;
+
+    cars.forEach(function(car) {
+        let position = new google.maps.LatLng(car.lat, car.lng);
+        let marker = new google.maps.Marker({position, map, icon: "car.png"});
+
+        let dist = MILES_PER_METER * google.maps.geometry.spherical.computeDistanceBetween(my_loc, position);
+        if (!minDist || dist < minDist) {
+            minDist = dist;
+            closestPos = position;
+            closestUsername = car.username;
+        }
+
+        marker.addListener('click', function(){
+            infowindow.setContent("<p>Distance: " + dist + " miles </p>");
+            infowindow.open(map, marker);
+        });
+    });
+
+    return {dist: minDist, pos: closestPos, username: closestUsername};
 }
