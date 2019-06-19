@@ -2,15 +2,6 @@ const MILES_PER_METER = 0.000621371;
 var map;
 var infowindow;
 
-var staticCars = [
-    {username: "mXfkjrFw", lat: 42.3453, lng: -71.0464},
-    {username: "nZXB8ZHz", lat: 42.3662, lng: -71.0621},
-    {username: "Tkwu74WC", lat: 42.3603, lng: -71.0547},
-    {username: "5KWpnAJN", lat: 42.3472, lng: -71.0802},
-    {username: "uf5ZrXYw", lat: 42.3663, lng: -71.0544},
-    {username: "VMerzMH8", lat: 42.3542, lng: -71.0704}
-];
-
 function initMap(){
     // Set up global variables (map and infowindow)
     map = new google.maps.Map(document.getElementById('map'), {
@@ -36,10 +27,9 @@ function initMap(){
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4 && xhr.status == 200) {
                 cars = JSON.parse(xhr.responseText);
-                cars.push(...staticCars); // We also process the static cars
 
                 // Add a marker to each car and compute minimum distance
-                closestCar = processCars(cars, my_loc)
+                closestCar = markCarDistances(cars, my_loc)
 
                 // Draw polyline
                 let path = new google.maps.Polyline({
@@ -66,7 +56,7 @@ function initMap(){
 //  dist:     the distance between the closest car and 'my_loc' in miles
 //  pos:      a LatLng object describing the position of the closest car
 //  username: the username of the closest car
-function processCars(cars, my_loc)
+function markCarDistances(cars, my_loc)
 {
     let minDist = null;
     let closestPos = null;
