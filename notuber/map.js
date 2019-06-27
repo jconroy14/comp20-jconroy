@@ -21,7 +21,7 @@ function initMap(){
 
         // Get list of cars from the Ride-Sharing API
         let xhr = new XMLHttpRequest();
-        xhr.open("POST", "https://hans-moleman.herokuapp.com/rides");
+        xhr.open("POST", "https://ride-hailing.herokuapp.com/rides");
         xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xhr.send("username=ciuyoepn&lat=" + my_loc.lat() + "&lng=" + my_loc.lng());
         xhr.onreadystatechange = function() {
