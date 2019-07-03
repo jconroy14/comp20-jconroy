@@ -28,7 +28,7 @@
 
 <h1>Methodology</h1>
 
-<p>I began with black-box testing, attempting to attack the server without viewing the source code. I primarily used the "curl" command-line utility. I then viewed the source code (white-box testing) and continued to search for vulnerabilities using <code>curl</code> and a web browser. I did NOT use tools such as BurpSuite or OWASP ZAP, but doing so would be a good start for further investigation.</p>
+<p>I began with black-box testing, attempting to attack the server without viewing the source code. I primarily used the <code>curl</code> command-line utility. I then viewed the source code (white-box testing) and continued to search for vulnerabilities using <code>curl</code> and a web browser. I did NOT use tools such as BurpSuite or OWASP ZAP, but doing so would be a good start for further investigation.</p>
 
 <h1>Abstract of Findings</h1>
 
@@ -55,7 +55,7 @@ When a user makes a GET "/" request, that username will be echoed onto the page 
 <p><span class="header">Solution:</span> This vulnerability can be patched by sanitizing user input. For example, instead of adding "results[count].username" to the HTML in line 140 of server.js, we could add "validator.escape(results[count].username)".</p>
 
 <h3>2. MongoDB Injection in "/passenger.json"</h3>
-<p><span class="header">Severity:</span> Low. This exploit exposes passenger data, but this information was mostly accessible through the "/" endpoint. This is mainly just bad programming practice and could potentially be used in other exploits that I have not found.</p>
+<p><span class="header">Severity:</span> Low. This vulnerability exposes passenger data, but this information was mostly accessible through the "/" endpoint. This is mainly just bad programming practice and could potentially be used in other exploits that I have not found.</p>
 
 <p><span class="header">Issue:</span> The username passed to the GET "/passenger.json" request is not sanitized before being used in a query to a MongoDB database. This allows attackers to search for values that not strings. Attackers can abuse the way parameters are parsed by the qs library to reveal all passenger logs, as opposed to the indended use case of revealing the logs of one specific passenger.</p>
 
@@ -65,7 +65,7 @@ the username field is parsed as {$ne: ""} and MongoDB matches all usernames that
 
 <img src="passenger_injection.png" alt="Passenger logs exposed from MongoDB injection">
 
-<p><span class="header">Solution:</span> This is not a huge problem, as the exposed data is meant to be publicly available via the GET "/" route. That being said, this is still bad practice and could potentially be exploited by an attacker if new injection exploits were discovered. The problem can easily be fixed by sanitizing user input. The "mongo-sanitize" library (<a href="https://github.com/vkarpov15/mongo-sanitize">https://github.com/vkarpov15/mongo-sanitize</a>) provides a method that removes all keys starting with a '$'. We can use this to sanitize the input:</p>
+<p><span class="header">Solution:</span> This is not a huge problem, as the exposed data is meant to be publicly available via the GET "/" route. That being said, this is still bad practice and could potentially be exploited by a creative attacker. The problem can easily be fixed by sanitizing user input. The "mongo-sanitize" library (<a href="https://github.com/vkarpov15/mongo-sanitize">https://github.com/vkarpov15/mongo-sanitize</a>) provides a method that removes all keys starting with a '$'. We can use this to sanitize the input:</p>
 <pre><code>
 const sanitize = require('mongo-sanitize');
 ...
@@ -87,7 +87,7 @@ var usernameEntry = sanitize(req.query.username)
 
 <img src="incorrect_availability.png" alt="/rides returns incorrect information">
 
-<p> This exploit (MongoDB injection) can be fixed in the same way as described in part (2): sanitizing user input with the mongo-sanitize library. Additional security could also be added to the "/update" endpoint (eg. a password associated with each username), though this is not as large a priority if attackers cannot find vehicle usernames easily with MongoDB injection. </p>
+<p> This vulnerability (MongoDB injection) can be fixed in the same way as described in part (2): sanitizing user input with the mongo-sanitize library. Additional security could also be added to the "/update" endpoint (eg. a password associated with each username), though this is not as large a priority if attackers cannot find vehicle usernames easily with MongoDB injection. </p>
 
 <h1>Conclusion</h1>
 
