@@ -1,0 +1,100 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Ride-Share API Vulnerability Report</title>
+<style type="text/css">
+    .header {font-weight: bold;}
+    img {
+        width: 85%;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+</style>
+</head>
+<body>
+<h1>Introduction</h1>
+
+<p>I attempted to find vulnerabilities in the ride-share API, located at <a href="https://hans-moleman.herokuapp.com/">https://hans-moleman.herokuapp.com/</a>. This API is intended to be used as part of a ride-share service, where users can send requests to hail a vehicle and divers can signal their availability. It includes 5 endpoints:</p>
+<ui>
+<li>POST /rides: A request for a ride. The endpoint returns a list of available vehicles. It requires username, latitidue, and longitude fields in the body</li>
+<li>POST /update: Given a vehicle username, updates that a vehicle to show that it is available</li>
+<li>GET /: Returns a HTML page with logs of user requests</li>
+<li>GET /passenger.json": Given a username, returns a list of the requests that user has made</li>
+<li>GET /vehicle.json: Given a username, returns a list of the availability of that vehicle</li>
+</ui>
+
+<h1>Methodology</h1>
+
+<p>I began with black-box testing, attempting to attack the server without viewing the source code. I primarily used the "curl" command-line utility. I then viewed the source code (white-box testing) and continued to search for vulnerabilities using curl and a web browser. I did NOT use tools such as BurpSuite or OWASP ZAP, but doing so would be a good start for further investigation.</p>
+
+<h1>Abstract of Findings</h1>
+
+<p>The server contains severe vulnerabilities that present a danger to the user and can render the application practically useless. Three major flaws were found: </p>
+<ol>
+<li>Attackers can gain access to and run malware on consumer computers. </li>
+<li>Attackers can view sensitive data (ride requests and vehicle availability).</li>
+<li>Attackers can update vehicle availability with false data, causing users to see incorrect ride information.</li>
+</ol>
+
+<h1>Issues Found</h1>
+
+<h3>1. Cross-Site Scripting Attack</h3>
+<p><span class="header">Severity:</span> High. This exploit allows attackers to execute arbitrary javascript code on a user's computer.</p>
+
+<p><span class="header">Description:</span> The GET "/" endpoint displays HTML that echos usernames without sanitization. An arbitrary string can be added to this HTML by making a POST request to "/rides", as this endpoint takes in a "username" as part of the request body and stores this string in a database without any sanitization. For example, the attacker could make the request:
+
+<code>curl https://hans-moleman.herokuapp.com/rides --data "username=&ltscript&gt //arbitrary javascript here &ltscript&gt&lat=0&lng=0"</code>.
+
+When a user makes a GET "/" request, that username will be echoed onto the page and the arbitary javascript will be run. See the screenshot below where I caused the code "alert('Hello')" to be run upon page load.</p>
+
+<img src="XSS.png" alt="Cross-Site Scripting executes arbitrary code on user's computer">
+
+<p><span class="header">Solution:</span> This vulnerability can be patched by sanitizing user input. For example, instead of adding "results[count].username" to the HTML in line 140 of server.js, we could add "validator.escape(results[count].username)".</p>
+
+<h3>2. MongoDB Injection in "/passenger.json"</h3>
+<p><span class="header">Severity:</span> Low. This exploit exposes passenger data, but this information was mostly accessible through the "/" endpoint. This is mainly just bad programming practice and could potentially be used in other exploits that I have not found.</p>
+
+<p><span class="header">Issue:</span> The username passed to the GET "/passenger.json" request is not sanitized before being used in a query to a MongoDB database. This allows attackers to search for values that not strings. Attackers can abuse the way parameters are parsed by the qs library to reveal all passenger logs, as opposed to the indended use case of revealing the logs of one specific passenger.</p>
+
+<p>For example, when we send the request
+<code> https://hans-moleman.herokuapp.com/passenger.json?username[$ne]= </code>
+the username field is parsed as {$ne: ''}, which MongoDB matches to all usernames that are not null. This returns logs for the vast majority of passengers (and the remaining logs can be fetched with <code>https://hans-moleman.herokuapp.com/passenger.json?username=).</code> </p>
+
+<img src="passenger_injection.png" alt="Passenger logs exposed from MongoDB injection">
+
+<p> This is not an immediate problem, as this data is publicly available via the GET "/". As seen in the screenshot below, there are almost exactly the same number of entries returned by the "/passenger.json" exploit and GET "/" request (the slight difference is due to one index starting at 1 as opposed to 0 and due to the exploit not returning logs associated with a username of null). </p>
+
+<img src="compare_injection.png" alt="Exposed passenger logs are available from GET / endpoint">
+
+<p><span class="header">Solution:</span> That being said, this is still bad practice and could potentially be exploited by a more creative attacker. The problem can easily be fixed by sanitizing user input. The "mongo-sanitize" library (<a href="https://github.com/vkarpov15/mongo-sanitize">https://github.com/vkarpov15/mongo-sanitize</a>) provides a method that removes all keys starting with a '$'. We can use this to sanitize the input:</p>
+<pre><code>
+const sanitize = require('mongo-sanitize');
+...
+var usernameEntry = sanitize(req.query.username)
+</code></pre>
+
+<h3>3. MongoDB Injection in "/vehicle.json" and Lack of Authentication in "/update"</h3>
+<p><span class="header">Severity:</span> Medium-High. This exploit allows attackers to force the "/rides" endpoint to return meaningless data and muddles the logs in "/vehicle.json". The exploit is rated a bit lower than "high" because it does not allow the attacker to gain control of client-side or server-side computer (ie. execute arbitrary commands).</p>
+
+
+<p>The MongoDB injection attack described in the previous section can also be used against the "/vehicle.json" endpoint to expose all logs for vehicle availablility. This is problematic, as the vehicle logs should not be publically accessible. </p>
+
+<img src="vehicle_injection.png" alt="Vehicle logs exposed from MongoDB injection">
+
+<p> By revealing these logs, an attacker can find the usernames of all vehicles. These usernames are the sole form of authentication when making a call to the "/update" (which marks a vehicle as available). With this information, an attacker can impersonate a vehicle and make arbitrarily many calls to the "/update" endpoint, filling the availability database with inaccurate data, and therefore causing the "/rides" endpoint to return inaccurate data to users. In fact, if the attacker had enough time, they could exhaust the storage space of the database. </p>
+
+<p> The screenshot below shows a request to "/rides" after repeatedly running
+<code> curl https://hans-moleman.herokuapp.com/update --data "username=mXfkjrFw&lat=0&lng=0" </code></p>
+
+<img>
+
+<p> This exploit (MongoDB injection) can be fixed in the same way as described in part (2): sanitizing user input with the mongo-sanitize library. Additional security could also be added to the "/update" endpoint (eg. a password associated with each username), though this is not as large a priority once attackers cannot find vehicle usernames easily. </p>
+
+<h1>Conclusion</h1>
+
+<p> The current application is extremely vulnerable. There are very quick fixes to the major problems. Adding authentication and rate limits to the POST endpoints could also be a worthwhile investement to limit an attackers ability to insert data into the server database. </p>
+</html>
+</body>
