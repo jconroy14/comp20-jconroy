@@ -1,0 +1,9 @@
+{
+    "name": "ride-hailing",
+    "version": "0.0.1",
+    "dependencies": {
+        "cors": "^2.8.5",
+        "express": "latest",
+        "mongodb": "^2.2.33"
+    }
+}
