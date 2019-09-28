@@ -1,6 +1,6 @@
 # Comp20 Projects
 
-This repository contains a collection of projects I built while taking the Tufts Comp20 Web Development course.  
+This repository contains a collection of projects I built while taking the Tufts Comp20 Web Development course during Summer 2019.  
 
 ### Projects:  
 **ride-hailing**: Provides an API for a Ride-Hailing Service to request and provide rides (Node.js, MongoDB)  
